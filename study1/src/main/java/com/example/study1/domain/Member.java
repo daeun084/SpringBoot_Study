@@ -1,6 +1,12 @@
 package com.example.study1.domain;
 
+import jakarta.persistence.*;
+
+@Entity
 public class Member {
+    @Id
+    //pk, db에서 가져와서 사용하는 값
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String name;
 
