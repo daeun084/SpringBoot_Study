@@ -25,10 +25,19 @@ public class MemberService {
 
     //회원가입
     public long join(Member member){
-        //같은 이름이 있는 중복 회원X
-        validateDuplicateMember(member);
-        memberRepository.save(member);
-        return member.getId();
+        long start = System.currentTimeMillis();
+
+        try {
+            //같은 이름이 있는 중복 회원X
+            validateDuplicateMember(member);
+            memberRepository.save(member);
+            return member.getId();
+        }
+        finally {
+            long finish = System.currentTimeMillis();
+            long timeMs = finish - start;
+            System.out.println("join = "+timeMs + "ms");
+        }
     }
     //회원 중복을 검증한 후 통과하면 repo에 저장하고 id를 반환
 
