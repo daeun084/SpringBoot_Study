@@ -6,9 +6,21 @@ import java.util.Date;
 
 @Entity
 //JPA를 사용하는 객체임을 명시 -> JPA가 관리
+@SequenceGenerator(name = "Member_SEQ_GENERATOR",
+                    sequenceName = "MEMBER_SEQ", //매핑할 DB 시퀀스 이름
+                    initialValue = 1, allocationSize = 1)
+    //allocationSize 기본값 = 50
 public class Member {
     @Id //PK
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
+                    generator = "MEMBER_SEQ_GENERATOR")
     private long id;
+    /**IDENTITY 전략**/
+    //기본 키 생성을 DB에 위임
+    //em.persist()시점에 INSERT SQL 실행 후 DB에서 식별자 조회
+    /** 시퀀스 전략**/
+    //키 생성 전용 테이블 하나 만들어서 DB 시퀀스 흉내내는 전략
+    //모든 DB에 적용 가능하나 성능이 떨어짐
 
     //@Column(name = "name", insertable = true, updatable = true)
     @Column(name = "name", columnDefinition = "varchar(100) default 'EMPTY'")
