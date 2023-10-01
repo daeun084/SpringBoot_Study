@@ -16,13 +16,58 @@ public class JpaMain {
         transaction.begin(); //transaction 시작
 
         try {
-            List<Member> findMembers = em.createQuery("select m from Member", Member.class).getResultList();
+            Team team = new Team();
+            team.setName("Team A");
+            em.persist(team);
 
+            Member member = new Member();
+            member.setName("Member1");
+
+            /**객체를 테이블에 맞춤**/
+            /*
+            member.setTeamId(team.getId());
+            Member findMember = em.find(Member.class, member.getId());
+            Team findTeam = em.find(Team.class, team.getId());
+             */
+
+
+            /** 단방향 연관관계 **/
+            //member.setTeam(team);
+                //teamid가 아니라 직접 team table과 매핑
+                //JPA가 알아서 team 객체에서 PK값을 꺼내 insert 사
+            //Team findteam = member.getTeam();
+
+
+            /** 양방향 연관관계 **/
+           // Member findmember = em.find(Member.class, member.getId());
+            //List<Member> members = findmember.getTeam().getMembers();
+                //member가 속하는 팀의 멤버들을 리스트로 가져옴 -> 양방향
+
+
+            //team.getMembers().add(member); //연관관계의 주인에 값 설정
+            member.setTeam(team);
+
+            em.persist(member);
+
+        }catch (Exception e){
+            transaction.rollback();
+        }finally {
+            em.close();
+        }
+
+        emf.close();
+    }
+}
+
+
+//==영속, 비영속 상태 ==//
+/*
+  List<Member> findMembers = em.createQuery("select m from Member", Member.class).getResultList();
 
             //비영속
             Member member = new Member();
-            member.setName("helloA");
-            member.setId(1L);
+           // member.setName("helloA");
+            // member.setId(1L);
 
             //영속
             em.persist(member);
@@ -40,13 +85,4 @@ public class JpaMain {
             //데이터 변경 유무를 확인하고
             //데이터가 바뀐 부분이 있다면 update query를 날려 update
 
-
-        }catch (Exception e){
-            transaction.rollback();
-        }finally {
-            em.close();
-        }
-
-        emf.close();
-    }
-}
+ */
