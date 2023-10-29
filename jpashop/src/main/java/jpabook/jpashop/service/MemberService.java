@@ -49,4 +49,10 @@ import java.util.List;
         return memberRepository.findOne(memberid);
     }
 
+    @Transactional
+    public void update(Long id, String name) {
+        Member member = memberRepository.findOne(id);
+        member.setName(name);
+        //id로 멤버를 찾아 이름 변경
+    }
 }
