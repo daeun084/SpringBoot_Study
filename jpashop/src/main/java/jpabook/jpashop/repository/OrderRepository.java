@@ -1,6 +1,5 @@
 package jpabook.jpashop.repository;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
@@ -96,4 +95,25 @@ public class OrderRepository {
         //실무에서 사용하기에는 너무 복잡해서 추천하지 않 + 유지보수하기 너무 힘든 방식
     }
 
+    /**Fetch Join**/
+    public List<Order> findAllWithMemberDelivery() {
+        return em.createQuery(
+                "select o form Order o" +
+                        " join fetch o.member m" +
+                        " join fetch o.delivery d", Order.class
+        ).getResultList();
+        //한 번 쿼리로 Order 조회 + member, delivery 정보 같이 가져옴
+        //member와 delivery 필드가 LAZY이지만 해당 속성을 무시하고 모든 필드의 값을 채워서 반환함
+
+    }
+
+    public List<OrderSimpleQueryDto> findOrderDtos() {
+        return em.createQuery("select new " +
+                        "jpabook.jpashop.repository.order.simplequery.OrderSimpleQueryDto(o.id, m.name, o.orderDate, o.status, d.address)" +
+                        " from Order o" +
+                " join o.member m" +
+                " join o.delivery d",OrderSimpleQueryDto.class)
+                .getResultList();
+    }
+    //query를 직접 짜기 때문에 더 정확한 select값을 얻을 수 있음
 }

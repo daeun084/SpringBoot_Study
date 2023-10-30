@@ -1,5 +1,6 @@
 package jpabook.jpashop.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
@@ -24,6 +25,7 @@ public class Member {
     //내장타입임을 명시 /  Embedded, Embedable 중 하나만 있어도 괜찮음
     private Address address;
 
+    @JsonIgnore //order class와 양방향 관계이기에 Json 무한 루프를 피하기 위해 annotation 적용
     @OneToMany(mappedBy = "member")
     //일대다 관계 명시
     //Order 클래스의 member 필드에 의해 맵핑됨
