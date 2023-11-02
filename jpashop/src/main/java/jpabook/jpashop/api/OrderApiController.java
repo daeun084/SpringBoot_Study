@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.aspectj.weaver.ast.Or;
 import org.springframework.data.domain.jaxb.SpringDataJaxb;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -86,9 +87,46 @@ public class OrderApiController {
     }
 
 
-
     /**Version_3**/
-    public List
+    //Entity를 DTO로 변환
+    @GetMapping("/api/v3/orders")
+    public List<OrderDto> orderV3(){
+        //Version_2와 orderRepository에 있는 함수만 변경됨
+        List<Order> orders = orderRepository.findAllWithItem();
+        List<OrderDto> result = orders.stream()
+                .map(o -> new OrderDto(o))
+                .collect(Collectors.toList());
+        return result;
+    }
+
+
+
+    /**Version_3_1**/
+    //ToOne 관게는 모두 fetchJoin
+    //컬렉션은 지연로딩으로 조회하나 개별 최적화 옵션 사 : @BatchSize
+    @GetMapping("/api/v3.1/orders")
+    public List<OrderDto> orderV3_page(
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @RequestParam(value = "limit", defaultValue = "100") int limit)
+    {
+        List<Order> orders = orderRepository.findAllWithMemberDelivery(offset, limit);
+        //ToOne 관계는 모두 fetchJoin -> 쿼리 하나가
+        //param을 통해 paging 추가
+
+        List<OrderDto> result = orders.stream()
+                .map(o -> new OrderDto(o))
+                .collect(Collectors.toList());
+        //지연로딩으로 컬렉션 조회 -> 쿼리 6
+            //orderItems 3번
+            //그 내부 Items 3번
+        return result;
+        //BatchSize를 사용하면 -> 지연로딩 최적화
+            //OrderItem 한 번
+            //그 내부 Items 한 번만 쿼리 실행
+    }
+    //version3보다 쿼리 수는 많지만 페이징 가능 + 데이터 전송량 줄어들음 이라는 장점 탑재
+    //ToOne이 아닌 관계는 inquery방식으로 풀어낼 수 있음
+
 
 
 }

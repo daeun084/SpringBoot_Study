@@ -13,6 +13,8 @@ spring:
         hibernate:
 #          show_sql: true
             #sql들을 System.out으로 출력함
+          default_batch_fetch_size: 1000
+            #지연로딩 최적화 클로벌 옵션
           format_sql: true
 logging.level:
   org.hibernate.SQL: debug

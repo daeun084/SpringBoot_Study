@@ -116,4 +116,35 @@ public class OrderRepository {
                 .getResultList();
     }
     //query를 직접 짜기 때문에 더 정확한 select값을 얻을 수 있음
+
+
+    ///api/v3/orders
+    //fetch join
+    public List<Order> findAllWithItem() {
+        return em.createQuery("select distinct o from Order o" +
+                " join fetch o.member m" +
+                " join fetch o.delivery d" +
+                " join fetch o.orderItems oi" +
+                    //일대다 조인으로 인해 orderItem을 기준으로 Order객체의 데이터 수가 달라짐
+                " join fetch oi.item i"
+                , Order.class).getResultList();
+        //distinct : 일대다 조인이 있기 떄문에 DB row가 증가함
+        //-> order Entity 조회 수도 증가함
+        //distinct -> 같은 Entity가 조회되면 애플리케이션에서 중복을 거름(중복 조회 거름)
+        //단점 : 페이징 불가
+            //hibernate측에서 db에서 모든 데이터를 불러와 애플리케이션에 올려두고 메모리에서 페이징 시도 -> 큰 장애 위험
+
+    }
+
+    /**Version 3_1**/
+    public List<Order> findAllWithMemberDelivery(int offset, int limit) {
+        return em.createQuery(
+                "select o form Order o" +
+                        " join fetch o.member m" +
+                        " join fetch o.delivery d", Order.class)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+        //paging 추가
+    }
 }
