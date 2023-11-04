@@ -6,6 +6,10 @@ import jpabook.jpashop.domain.OrderItem;
 import jpabook.jpashop.domain.OrderStatus;
 import jpabook.jpashop.repository.OrderRepository;
 import jpabook.jpashop.repository.OrderSearch;
+import jpabook.jpashop.repository.query.OrderFlatDto;
+import jpabook.jpashop.repository.query.OrderItemQueryDto;
+import jpabook.jpashop.repository.query.OrderQueryDto;
+import jpabook.jpashop.repository.query.OrderQueryRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.weaver.ast.Or;
@@ -18,11 +22,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.*;
+
 @RestController
 @RequiredArgsConstructor
 public class OrderApiController {
 
     private final OrderRepository orderRepository;
+    private final OrderQueryRepository orderQueryRepository;
+    //Version_4에서 새로 생성한 쿼리 관련 OrderRepository
 
     /**Version_1**/
     //Entity 직접 노출
@@ -48,7 +56,7 @@ public class OrderApiController {
         List<Order> orders = orderRepository.findAllByString(new OrderSearch());
         List<OrderDto> result = orders.stream()
                 .map(o -> new OrderDto(o)) //order객체를 넘겨서 Order type을 OrderDto type으로 변경
-                .collect(Collectors.toList());
+                .collect(toList());
         return result;
     }
 
@@ -68,7 +76,7 @@ public class OrderApiController {
             address = order.getDelivery().getAddress();
             orderItems = order.getOrderItems().stream()
                     .map(orderItem -> new OrderItemDto(orderItem))
-                    .collect(Collectors.toList());
+                    .collect(toList());
             //Dto 내부에 Entity가 있으면 안됨 -> orderItem 다시 map해서 ItemDto로 타입 변경 필요
             //Entity에 대한 의존을 완전히 끊어야 함 -> OrderItemDto
         }
@@ -95,7 +103,7 @@ public class OrderApiController {
         List<Order> orders = orderRepository.findAllWithItem();
         List<OrderDto> result = orders.stream()
                 .map(o -> new OrderDto(o))
-                .collect(Collectors.toList());
+                .collect(toList());
         return result;
     }
 
@@ -115,7 +123,7 @@ public class OrderApiController {
 
         List<OrderDto> result = orders.stream()
                 .map(o -> new OrderDto(o))
-                .collect(Collectors.toList());
+                .collect(toList());
         //지연로딩으로 컬렉션 조회 -> 쿼리 6
             //orderItems 3번
             //그 내부 Items 3번
@@ -127,6 +135,41 @@ public class OrderApiController {
     //version3보다 쿼리 수는 많지만 페이징 가능 + 데이터 전송량 줄어들음 이라는 장점 탑재
     //ToOne이 아닌 관계는 inquery방식으로 풀어낼 수 있음
 
+
+    /**Version_4**/
+    //Entity를 DTO로 변환
+    @GetMapping("/api/v4/orders")
+    public List<OrderQueryDto> orderV4(){
+        //OrderQueryDto 새로 생성(repository.query)
+        return orderQueryRepository.findOrderQueryDtos();
+    }
+
+    
+    /**Version_5**/
+    @GetMapping("/api/v5/orders")
+    public List<OrderQueryDto> orderV5() {
+        return orderQueryRepository.findAllByDto_optimization();
+    }
+
+    /**Version_6**/
+    /*
+    @GetMapping("/api/v6/orders")
+    public List<OrderQueryDto> orderV6() {
+        List<OrderFlatDto> flats = orderQueryRepository.findAllByDto_flat();
+
+        //OrderFlatDto type을 OrderQueryDto type으로 전환
+        return flats.stream()
+                .collect(groupingBy(o -> new OrderQueryDto(o.getOrderId(),
+                                o.getName(), o.getOrderDate(), o.getOrderStatus(), o.getAddress()),
+                        mapping(o -> new OrderItemQueryDto(o.getOrderId(),
+                                o.getItemName(), o.getOrderPrice(), o.getCount()), toList())
+                )).entrySet().stream()
+                .map(e -> new OrderQueryDto(e.getKey().getOrderId(),
+                        e.getKey().getName(), e.getKey().getOrderDate(), e.getKey().getOrderStatus(),
+                        e.getKey().getAddress(), e.getValue()))
+                .collect(toList());
+    }
+     */
 
 
 }
